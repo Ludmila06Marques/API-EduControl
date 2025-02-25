@@ -10,18 +10,22 @@ import * as userSchema from "../type/userType.js"
 dotenv.config()
 
 export async function createUser(user:userSchema.CreateUserType){
-    const userExist = await userRepository.findUserByEmail(user.email);
-    if (userExist) {
-      throw errorsSchema.failsConflict("Ya hay un usuario con este correo");
-    }
-    const rand = 10;
-    const criptoPass = bcrypt.hashSync(user.password, rand);
-    await userRepository.insertUser ({...user, password: criptoPass});
+ try {
+  const userExist = await userRepository.findUserByEmail(user.email);
+  if (userExist) {
+    throw errorsSchema.failsConflict("Ya hay un usuario con este correo");
+  }
+  const rand = 10;
+  const criptoPass = bcrypt.hashSync(user.password, rand);
+  await userRepository.insertUser ({...user, password: criptoPass});
+ } catch (error) {
+  throw error;
+ }
 }
 
 export async function loginUser(login: userSchema.CreateUserTypeLogin) {
-  
-  const user = await createToken(login);
+  try{
+  const user = await createToken(login)
   if(user){
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
 
@@ -31,17 +35,26 @@ export async function loginUser(login: userSchema.CreateUserTypeLogin) {
   }
   return formatResponse
   }
+  }catch(error){
+    throw error
+  }
+
   
 }
 export async function createToken(login: userSchema.CreateUserTypeLogin) {
-  const user :any= await userRepository.findUserByEmail(login.email);
-  if (!user) throw errorsSchema.failUnauth("unauthorized");
+  try {
+     const user :any= await userRepository.findUserByEmail(login.email)
+  if (!user) throw errorsSchema.failUnauth("Correo o contraseña incorrectos");
 
   const isPasswordValid = bcrypt.compareSync(login.password, user.contrasena);
 
-  if (!isPasswordValid) throw errorsSchema.failUnauth("Invalid password");
+  if (!isPasswordValid) throw errorsSchema.failUnauth("Correo o contraseña incorrectos");
 
   return user;
+  } catch (error) {
+    throw error
+  }
+ 
 }
 export async function findUserById(id: number) {
   const user = await userRepository.findById (id);
@@ -50,6 +63,30 @@ export async function findUserById(id: number) {
 
   return user;
 }
+export async function findUserByEmail(email: string) {
+try {
+  const user = await userRepository.findUserByEmail (email);
+  if (!user) throw errorsSchema.failNotFound("User not found");
+
+
+  return user;
+} catch (error) {
+  throw error
+}
+}
+export async function updatePassword(id:number,newPass: string,) {
+try {
+  const user = await userRepository.updatePassword (id,newPass);
+  if (!user) throw errorsSchema.failNotFound("User not found");
+
+
+  return user;
+} catch (error) {
+  throw error
+}
+}
+
+
 export async function deleteUser(id:number){
   if(isNaN(id)) throw errorsSchema.failNotFound('Id must be a number')
 

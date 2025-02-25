@@ -6,7 +6,7 @@ import * as tdmQueries from '../queries/tdm.queries.js';
 
 export async function findUserByEmail(email: string) {
   try {
-    const result = await client.query(userQueries.findUserByEmailQuery, [email]);
+    const result = await client.query(userQueries.findUserByEmailQueryRol, [email]);
     
     if (result.rows.length > 0) {
       return result.rows[0];  
@@ -14,16 +14,39 @@ export async function findUserByEmail(email: string) {
       return null;  
     }
   } catch (error) {
-    console.error('Erro ao buscar usuário pelo e-mail:', error);
     throw error;  
   }
 }
+
 export async function findById(id: number) {
-  return null
+  try {
+    const result = await client.query(userQueries.findUserByIdQuery, [id]);
+    
+    if (result.rows.length > 0) {
+      return result.rows[0];  
+    } else {
+      return null;  
+    }
+  } catch (error) {
+    throw error;  
+  }
 }
+export async function updatePassword(id: number, newPassword:string) {
+  try {
+    const result = await client.query(userQueries.updatePassword, [newPassword,id]);
+    
+    if (result.rows.length > 0) {
+      return result.rows[0];  
+    } else {
+      return null;  
+    }
+  } catch (error) {
+    throw error;  
+  }
+}
+
 export async function insertUser(user: userSchema.CreateUserType) {
   try {
-    // Se o usuário tiver uma foto, insira na tabela multimedia
     let multimediaId = null;
     if (user.photo) {
       const multimediaValues = [
@@ -31,14 +54,12 @@ export async function insertUser(user: userSchema.CreateUserType) {
         user.photoType, 
         "PERFIL"
       ];
-
-      // Inserir foto na tabela multimedia
       try{
        const multimediaResult = await client.query(tdmQueries.insertIntoMultimedia, multimediaValues);
-      multimediaId = multimediaResult.rows[0].id_multimedia; // Recupera o ID da mídia inserida
+      multimediaId = multimediaResult.rows[0].id_multimedia; 
       }catch(error){
-        console.error('Erro ao inserir multimedia:', error.stack);
-        throw new Error('Erro ao inserir multimedia no banco de dados');
+  
+        throw error
       }
    
     }
@@ -57,15 +78,12 @@ export async function insertUser(user: userSchema.CreateUserType) {
       user.stateId || null,
       user.password,
     ];
-    console.log(values);
+   
 
     // Inserir o usuário na tabela usuario
     await client.query(userQueries.createUser, values);
-
-    console.log('Usuário inserido com sucesso!');
   } catch (error) {
-    console.error('Erro ao inserir usuário:', error.stack);
-    throw new Error('Erro ao inserir usuário no banco de dados');
+    throw error
   } 
 }
 

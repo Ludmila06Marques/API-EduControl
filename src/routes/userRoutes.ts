@@ -13,4 +13,6 @@ userRouter.put("/userInfo/:id/" , validateTokenFunction,userController.toUpdateI
 userRouter.put("/userName/:id/" , validateTokenFunction,userController.toUpdateName);
 userRouter.put("/userCountry/:id/",validateTokenFunction,userController.toUpdateCountry);
 userRouter.put("/userPhoto/:id/", validateTokenFunction,userController.toUpdatePhoto);
+userRouter.post("/forgot-password", userController.forgotPassword);
+userRouter.post("/reset-password", validateTokenFunction,userController.resetPassword);
 export default userRouter;

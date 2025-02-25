@@ -3,6 +3,19 @@ export const findUserByEmailQuery = `
   SELECT * FROM usuario WHERE email = $1
 `;
 
+export const findUserByEmailQueryRol = `
+   SELECT usuario.*, rol.rol
+  FROM usuario 
+  LEFT JOIN rol ON usuario.id_rol = rol.id_rol
+  WHERE usuario.email = $1
+`;
+export const updatePassword = `
+UPDATE usuario 
+SET contrasena = $1 
+WHERE id_usuario = $2 
+RETURNING *;
+`;
+
 export const findUserByIdQuery = `
   SELECT * FROM usuario WHERE id_usuario = $1
 `;
